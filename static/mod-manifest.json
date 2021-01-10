@@ -1,0 +1,65 @@
+{
+    "apiVersion": "1.0",
+    "version": "1.0.0",
+    "name": "Word cloud",
+    "id": "spotfire-wordcloud2-mod",
+    "icon": "icon.svg",
+    "properties": [ 
+        {
+            "name": "rotation",
+            "defaultValue": "none",
+            "type": "string"
+        }, 
+        {
+            "name": "normalizeFont",
+            "defaultValue": "false",
+            "type": "boolean"
+        },
+        {
+            "name": "useStyleFont",
+            "defaultValue": "false",
+            "type": "boolean"
+        },
+        {
+            "name": "randomPlacement",
+            "defaultValue": "false",
+            "type": "boolean"
+        }
+     ],
+    "dataViewDefinition": {
+        "colorAxis": {
+            "mode": "dual",
+            "dropTarget": {
+                "icon": "Color",
+                "description": "Color by {0}"
+            }
+        },
+        "axes": [
+            {
+                "name": "Words",
+                "mode": "categorical",
+                "placement": "top",
+                "legendItem": { "defaultVisibility": "hidden", "title": "Words" },
+                "dropTarget": {
+                    "icon": "XAxis3D",
+                    "description": "Show {0} words"
+                },
+                "allowMultipleMeasures": false
+            },
+            {
+                "name": "Font size",
+                "mode": "continuous",
+                "placement": "none",
+                "dropTarget": {
+                    "icon": "Size",
+                    "description": "Size words by {0}"
+                }
+            }
+        ]
+    },
+    "files": [
+        "index.html",
+        "main.css",
+        "bundle.js"
+    ]
+}
