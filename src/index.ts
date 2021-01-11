@@ -9,7 +9,7 @@ let seedrandom = require("seedrandom");
 import { cloud } from "./d3-cloud.js";
 import { measureText } from "./text-measure";
 import { createTooltipGenerator } from "./generic-tooltip";
-import { addHandlersSelection } from "./rect-selection";
+import { addHandlersSelection, removeHandlersSelection } from "./rect-selection";
 import { DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api";
 import { BaseType, range, schemeGnBu } from "d3";
 
@@ -191,8 +191,8 @@ const init = async (mod: Spotfire.Mod) => {
 
         // Was a Words axis set?
         if (wordsAxisMeta.parts.length == 0) {
-            // If not, do not render anything
-            svg.selectAll("*").remove(); // Clear previous rendering
+            // If not, remove all previously rendered bits and return
+            clearPreviousRender();
             onComplete();
             return;
         }
@@ -227,6 +227,7 @@ const init = async (mod: Spotfire.Mod) => {
         };
         let hash = hashcode.hashCode().value(nonColorData);
         if (hash == prevHash) {
+            // Only the colors changed, don't do a full re-render, just update the colors
             svg.selectAll("text:not(.hover)")
                 // @ts-ignore
                 .data(words, w => w.row.__index)
@@ -238,7 +239,7 @@ const init = async (mod: Spotfire.Mod) => {
 
             // Sets the viewBox to match windowSize
             svg.attr("viewBox", [0, 0, windowSize.width, windowSize.height].toString());
-            svg.selectAll("*").remove(); // Clear previous rendering
+            clearPreviousRender();
 
             // Due to the irregular shapes of text and the impressision of the default
             // browser hittesting for text (try e.g. a ☺ smiley) we use a custom hitmap
@@ -255,34 +256,34 @@ const init = async (mod: Spotfire.Mod) => {
             // Handle mouse operations
             let hoverMarking;
             svg.on("click", () => { 
-                let w = hitWord(d3.event.pageX, d3.event.pageY);
-                if (w) {
-                    w.row.mark(d3.event.ctrlKey ? "Toggle" : "Replace"); 
-                } else {
-                    if (!d3.event.ctrlKey) lastDataview.clearMarking();
-                }
-            }).on("mousemove", function() {
-                let w = hitWord(d3.event.pageX, d3.event.pageY);
-                //let elem = document.elementFromPoint(d3.event.pageX, d3.event.pageY);
-                if (w) {
-                    // @ts-ignore
-                    let elem = svg.selectAll("g").selectAll("text").filter(t => t.row.__index === w.row.__index );
-                    // Add hover effect to word
-                    if (!hoverMarking || hoverMarking.original !== elem.node()) {
-                        clearHoverMarking(hoverMarking);
-                        hoverMarking = showHoverMarking(hoverMarking, elem);
+                    let w = hitWord(d3.event.pageX, d3.event.pageY);
+                    if (w) {
+                        w.row.mark(d3.event.ctrlKey ? "Toggle" : "Replace"); 
+                    } else {
+                        if (!d3.event.ctrlKey) lastDataview.clearMarking();
                     }
-                    tooltip.show(w.tooltip);
-                } else {
-                    // Remove hover effect from word
+                }).on("mousemove", function() {
+                    let w = hitWord(d3.event.pageX, d3.event.pageY);
+                    //let elem = document.elementFromPoint(d3.event.pageX, d3.event.pageY);
+                    if (w) {
+                        // @ts-ignore
+                        let elem = svg.selectAll("g").selectAll("text").filter(t => t.row.__index === w.row.__index );
+                        // Add hover effect to word
+                        if (!hoverMarking || hoverMarking.original !== elem.node()) {
+                            clearHoverMarking(hoverMarking);
+                            hoverMarking = showHoverMarking(hoverMarking, elem);
+                        }
+                        tooltip.show(w.tooltip);
+                    } else {
+                        // Remove hover effect from word
+                        hoverMarking = clearHoverMarking(hoverMarking);
+                        tooltip.hide();
+                    }
+                })
+                .on("mouseout", function(tag) {
                     hoverMarking = clearHoverMarking(hoverMarking);
                     tooltip.hide();
-                }
-            })
-            .on("mouseout", function(tag) {
-                hoverMarking = clearHoverMarking(hoverMarking);
-                tooltip.hide();
-            });
+                });
 
             // Handle rectangle markings
             addHandlersSelection((result) => {
@@ -372,6 +373,15 @@ const init = async (mod: Spotfire.Mod) => {
             createSettingsPopout();
         }
         prevHash = hash;
+
+        function clearPreviousRender() {
+            prevHash = undefined;
+            svg.selectAll("*").remove();
+            removeHandlersSelection();
+            svg.on("click", null);
+            svg.on("mousemove", null);
+            svg.on("mouseout", null);
+        }
 
         function showHoverMarking(hoverMarking: any, elem: d3.Selection<d3.BaseType, unknown, d3.BaseType, unknown>) {
             hoverMarking = {

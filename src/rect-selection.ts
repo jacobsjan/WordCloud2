@@ -11,6 +11,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(min
 
 let selectionPoint = { x: 0, y: 0 };
 let meta = { ctrlKey: false, altKey: false };
+let mousemove, mouseup;
 type callbackParamType = { dragSelectActive: boolean } | 
     typeof selectionPoint 
     & typeof meta
@@ -31,7 +32,7 @@ export const addHandlersSelection = (callback: callbackType) => {
         document.addEventListener("mouseup", mouseup);
     };
 
-    const mousemove = (e: { clientX: number; clientY: number; }) => {
+    mousemove = (e: { clientX: number; clientY: number; }) => {
         const x = clamp(e.clientX, 0, window.innerWidth - 2);
         const y = clamp(e.clientY, 0, window.innerHeight - 2);
         const width = Math.abs(selectionPoint.x - x);
@@ -45,7 +46,7 @@ export const addHandlersSelection = (callback: callbackType) => {
         y < selectionPoint.y && (selectionDiv.style.top = y + "px");
     };
 
-    const mouseup = (e: { clientX: number; clientY: number; }) => {
+    mouseup = (e: { clientX: number; clientY: number; }) => {
         const x = clamp(e.clientX, 0, window.innerWidth - 2);
         const y = clamp(e.clientY, 0, window.innerHeight - 2);
         const width = Math.abs(selectionPoint.x - x);
@@ -69,4 +70,10 @@ export const addHandlersSelection = (callback: callbackType) => {
         document.removeEventListener("mousemove", mousemove);
         document.removeEventListener("mouseup", mouseup);
     };
+};
+
+export const removeHandlersSelection = () => {
+    document.removeEventListener("mousemove", mousemove);
+    document.removeEventListener("mouseup", mouseup);
+    mousemove = mouseup = undefined;
 };
