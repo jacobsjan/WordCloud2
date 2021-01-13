@@ -12,7 +12,7 @@
         }, 
         {
             "name": "normalizeFont",
-            "defaultValue": "false",
+            "defaultValue": "true",
             "type": "boolean"
         },
         {
