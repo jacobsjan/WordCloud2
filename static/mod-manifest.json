@@ -22,7 +22,7 @@
         },
         {
             "name": "randomPlacement",
-            "defaultValue": "false",
+            "defaultValue": "true",
             "type": "boolean"
         }
      ],
