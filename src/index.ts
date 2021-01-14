@@ -313,7 +313,7 @@ const init = async (mod: Spotfire.Mod) => {
             const font = useStyleFont.value() ? styling.general.font.fontFamily : "Impact,sans-serif";
 
             // Create normalization function for font sizes
-            const padding = 2;
+            const padding = windowSize.width > 400 && windowSize.height > 400 ? 2 : windowSize.width > 200 && windowSize.height > 200 ? 1 : 0;
             let normalizer = createFontSizeNormalizer(font, padding);
 
             // Seed the randomizer to make sure the words appear in the same place on each render
@@ -547,7 +547,7 @@ const init = async (mod: Spotfire.Mod) => {
                     --widestSize;
 
                 // Choose the smallest maximum font depending on surface area, highest or widest word
-                const result = Math.min(prevSize * .75, highestSize, widestSize); // .75 To aim for 25% of empty surface area around the word cloud
+                const result = Math.min(prevSize * .85, highestSize, widestSize); // .85 To aim for 15% of empty surface area around the word cloud
 
                 // Finish of by returning a function that maps the fontsize within a range of minFontSize to the maximum font size
                 normalizer = d3.scaleLinear().domain([Math.min(minSize, 0), maxSize] as d3.NumberValue[]).range([0, result]);

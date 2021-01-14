@@ -255,12 +255,12 @@ function cloudSprite(contextAndRatio, d, data, di) {
   while (++di < n) {
     d = data[di];
     c.save();
-    c.font = d.style + " " + d.weight + " " + ~~((d.size + 1) / ratio) + "px " + d.font;
+    c.font = d.style + " " + d.weight + " " + ~~(d.size / ratio) + "px " + d.font;
     var m = c.measureText(ie ? d.text + "m" : d.text), 
-        x0 = -(ie ? m.width >> 1 : m.actualBoundingBoxLeft + .5) * ratio,
-        x1 = (ie ? m.width >> 1 : m.actualBoundingBoxRight + .5) * ratio,
-        y0 = -(ie ? d.size : m.actualBoundingBoxAscent + .5) * ratio,
-        y1 = (ie ? d.size : m.actualBoundingBoxDescent + .5) * ratio;        
+        x0 = -(ie ? m.width >> 1 : m.actualBoundingBoxLeft) * ratio,
+        x1 = (ie ? m.width >> 1 : m.actualBoundingBoxRight) * ratio,
+        y0 = -(ie ? d.size : m.actualBoundingBoxAscent) * ratio,
+        y1 = (ie ? d.size : m.actualBoundingBoxDescent) * ratio;        
     if (d.padding) x0 -= d.padding, x1 += d.padding, y0 -= d.padding  , y1 += d.padding;   
     if (d.rotate) {
       var sr = Math.sin(d.rotate * cloudRadians),
@@ -284,6 +284,9 @@ function cloudSprite(contextAndRatio, d, data, di) {
       maxh = 0;
     }
     if (y + h >= ch) break;
+    c.beginPath();
+    c.rect(x, y, w, h);
+    c.clip();
     c.translate((x - x0) / ratio, (y - y0) / ratio);
     if (d.rotate) c.rotate(d.rotate * cloudRadians);
     c.fillText(d.text, 0, 0);
@@ -300,14 +303,14 @@ function cloudSprite(contextAndRatio, d, data, di) {
     d.hasText = true;
     x += w;
   }
-  var pixels = c.getImageData(0, 0, (cw << 5) / ratio, ch / ratio).data,
-      sprite = [];
+  var pixels = c.getImageData(0, 0, (cw << 5) / ratio, ch / ratio).data;
   while (--di >= 0) {
     d = data[di];
     if (!d.hasText) continue;
     var w = d.width,
         h = d.height,
-        w32 = w >> 5;
+        w32 = w >> 5,
+        sprite = [];
     // Zero the buffer
     for (var i = 0; i < h * w32; i++) sprite[i] = 0;
     x = d.xoff;
