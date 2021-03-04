@@ -1,6 +1,25 @@
-# Word Chart 
-This is a Word chart MOD for TIBCO Spotfire.
+# Wordcloud MOD for TIBCO Spotfire®
+Wordcloud let visualize textual information in a more visual and compelling manner than ever before. All the functionalities you expect are there: custom colors and font sizes, high performance, accurate and highly responsive markings, ... On top of that you can choose different word angles and layouts and specify font sizes yourself or let the Mod normalize these for you. 
 
+![Wordcloud MOD screenshot](screenshot.png)
+
+## Try this mod in TIBCO Spotfire® Analyst
+How to open the mod
+
+1. Open Spotfire® Analyst, and create and analysis by loading some data.
+2. Unzip the downloaded file, and locate the .mod file in the unzipped folder.
+3. Drag the file into the analysis.
+4. The visualization mod is added to the analysis.
+5. To learn more about the capabilities and limitations of this visualization mod, keep reading or see the User Guide which is also located in the downloaded folder.
+
+For general information on how to use and share visualization mods, you can read the Spotfire documentation.
+
+## Getting started
+To make the Wordcloud work properly you only need one column: Words. Keep those short for the best results. Having not too many different words also helps in keeping the visualization easily scannable.
+
+To spice up things a bit more add a numerical column to indicate the relative font size of each word (absolute if you want, turn off the 'normalize font size' setting behind the upper right cogwheel), add a splash of color using the color axis or show words at different angles by changing the rotation setting behind the cogwheel.
+
+# Development
 ## Prerequisites
 These instructions assume that you have [Node.js](https://nodejs.org/en/) (which includes npm) installed.
 
