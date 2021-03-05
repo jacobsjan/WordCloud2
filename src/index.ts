@@ -210,6 +210,11 @@ const init = async (mod: Spotfire.Mod) => {
             row: r
         }));
 
+        // Add id's to rows, TIBCO doesn't want me to use theirs
+        let hasher = hashcode.hashCode();
+        //@ts-ignore
+        words.forEach(w => { if(!w.row.id) w.row.id = hasher.value([w.text, w.size, colorAxisMeta.isCategorical ? categoricalValue(w.row.categorical("Color")) : w.row.continuous("Color").value()]); } );
+
         // Was anything besides coloring changed?
         let nonColorData = {
             words: words.map(r => ({ 
@@ -225,12 +230,12 @@ const init = async (mod: Spotfire.Mod) => {
             fontSizeAxisMeta,
             colorAxisMeta
         };
-        let hash = hashcode.hashCode().value(nonColorData);
+        let hash = hasher.value(nonColorData);
         if (hash == prevHash) {
             // Only the colors changed, don't do a full re-render, just update the colors
             svg.selectAll("text:not(.hover)")
                 // @ts-ignore
-                .data(words, w => w.row.__index)
+                .data(words, w => w.row.id)
                 .style("fill", (w) => w.color);
 
             onComplete();
@@ -241,7 +246,7 @@ const init = async (mod: Spotfire.Mod) => {
             svg.attr("viewBox", [0, 0, windowSize.width, windowSize.height].toString());
             clearPreviousRender();
 
-            // Due to the irregular shapes of text and the impressision of the default
+            // Due to the irregular shapes of text and the imprecision of the default
             // browser hittesting for text (try e.g. a ☺ smiley) we use a custom hitmap
             // for handling mouse operations
             let hitmap: number[],
@@ -250,7 +255,7 @@ const init = async (mod: Spotfire.Mod) => {
                 hitWord = (x: number, y: number) => { 
                     let id = hitId(x, y); 
                     // @ts-ignore
-                    return id !== undefined ? words.find(w => w.row.__index == id) as PlacedWordType : undefined;
+                    return id !== undefined ? words.find(w => w.row.id == id) as PlacedWordType : undefined;
                 };
 
             // Handle mouse operations
@@ -266,8 +271,8 @@ const init = async (mod: Spotfire.Mod) => {
                     let w = hitWord(d3.event.pageX, d3.event.pageY);
                     //let elem = document.elementFromPoint(d3.event.pageX, d3.event.pageY);
                     if (w) {
-                        // @ts-ignore
-                        let elem = svg.selectAll("g").selectAll("text").filter(t => t.row.__index === w.row.__index );
+                        //@ts-ignore
+                        let elem = svg.selectAll("g").selectAll("text").filter(t => t.row.id === w.row.id);
                         // Add hover effect to word
                         if (!hoverMarking || hoverMarking.original !== elem.node()) {
                             clearHoverMarking(hoverMarking);
@@ -304,7 +309,7 @@ const init = async (mod: Spotfire.Mod) => {
                         }
                     }   
                     // @ts-ignore
-                    let markedWords = words.filter(w => ids.includes(w.row.__index));
+                    let markedWords = words.filter(w => ids.includes(w.row.id));
                     markedWords.forEach(w => w.row.mark(result.ctrlKey ? "Toggle" : "Replace"));
                 }
             });
@@ -342,7 +347,7 @@ const init = async (mod: Spotfire.Mod) => {
             // Render calculated cloud of words
             function end(tagHitmap: PlacedWordType[], tags: PlacedWordType[]) { 
                 // @ts-ignore
-                hitmap = tagHitmap.map(t => t.row.__index);
+                hitmap = tagHitmap.map(t => t.row.id);
 
                 // Show words
                 svg.append("g")
