@@ -88,7 +88,7 @@ const init = async (mod: Spotfire.Mod) => {
         mod.windowSize(),
         mod.property("rotation"),
         mod.property("normalizeFont"),
-        mod.property("useStyleFont"),
+        mod.property("useImpactFont"),
         mod.property("randomPlacement"),
     );
 
@@ -100,10 +100,10 @@ const init = async (mod: Spotfire.Mod) => {
      * @param {Spotfire.Size} windowSize
      * @param {Spotfire.ModProperty<string>} rotation - Number of word rotations requested
      * @param {Spotfire.ModProperty<boolean>} normalizeFont - Normalize font size or not
-     * @param {Spotfire.ModProperty<boolean>} useStyleFont - Use font from style or default
+     * @param {Spotfire.ModProperty<boolean>} useImpactFont - Use Impact font or style default
      * @param {Spotfire.ModProperty<boolean>} randomPlacement - Distribute words randomly
      */
-    const onChange = async (dataView: Spotfire.DataView, windowSize: Spotfire.Size, rotation: Spotfire.ModProperty<string>, normalizeFont: Spotfire.ModProperty<boolean>, useStyleFont: Spotfire.ModProperty<boolean>, randomPlacement: Spotfire.ModProperty<boolean>) => {
+    const onChange = async (dataView: Spotfire.DataView, windowSize: Spotfire.Size, rotation: Spotfire.ModProperty<string>, normalizeFont: Spotfire.ModProperty<boolean>, useImpactFont: Spotfire.ModProperty<boolean>, randomPlacement: Spotfire.ModProperty<boolean>) => {
         // Show progress indicator if drawing takes a while
         let drawingFinished = false;
         setTimeout(function() {
@@ -118,7 +118,7 @@ const init = async (mod: Spotfire.Mod) => {
                 windowSize,
                 rotation,
                 normalizeFont,
-                useStyleFont,
+                useImpactFont,
                 randomPlacement,
                 () => {            
                     // Hide progress indicator
@@ -156,11 +156,11 @@ const init = async (mod: Spotfire.Mod) => {
      * @property {Spotfire.Size} windowSize - windowSize
      * @property {Spotfire.ModProperty<string>} rotation - Number of word rotations requested
      * @property {Spotfire.ModProperty<boolean>} normalizeFont - Normalize font size or not
-     * @property {Spotfire.ModProperty<boolean>} useStyleFont - Use font from style or default
+     * @property {Spotfire.ModProperty<boolean>} useImpactFont - Use Impact font or default
      * @property {Spotfire.ModProperty<boolean>} randomPlacement - Distribute words randomly
      * @property {any} onComplete - windowSize
      */
-    async function render(dataView: DataView, windowSize: Size, rotation: ModProperty<string>, normalizeFont: ModProperty<boolean>, useStyleFont: ModProperty<boolean>, randomPlacement: ModProperty<boolean>, onComplete: CallableFunction) {
+    async function render(dataView: DataView, windowSize: Size, rotation: ModProperty<string>, normalizeFont: ModProperty<boolean>, useImpactFont: ModProperty<boolean>, randomPlacement: ModProperty<boolean>, onComplete: CallableFunction) {
         /**
          * The DataView can contain errors which will cause rowCount method to throw.
          */
@@ -224,7 +224,7 @@ const init = async (mod: Spotfire.Mod) => {
             windowSize,
             rotation: rotation.value(),
             normalizeFont: normalizeFont.value(),
-            useStyleFont: useStyleFont.value(),
+            useImpactFont: useImpactFont.value(),
             randomPlacement: randomPlacement.value(),
             wordsAxisMeta,
             fontSizeAxisMeta,
@@ -315,7 +315,7 @@ const init = async (mod: Spotfire.Mod) => {
             });
 
             // Determine on font to use
-            const font = useStyleFont.value() ? styling.general.font.fontFamily : "Impact,sans-serif";
+            const font = useImpactFont.value() ? "Impact,sans-serif" : styling.general.font.fontFamily;
 
             // Create normalization function for font sizes
             const padding = windowSize.width > 400 && windowSize.height > 400 ? 2 : windowSize.width > 200 && windowSize.height > 200 ? 1 : 0;
@@ -463,11 +463,11 @@ const init = async (mod: Spotfire.Mod) => {
                             checked: normalizeFont.value() == true
                         }),
                         checkbox({
-                            name: "useStyleFont",
-                            text: "Use theme font",
+                            name: "useImpactFont",
+                            text: "Use 'Impact' font",
                             enabled: true,
-                            tooltip: "Use font from analysis theme rather than default",
-                            checked: useStyleFont.value() == true
+                            tooltip: "Use 'Impact' font rather than default from analysis",
+                            checked: useImpactFont.value() == true
                         }),
                     ]
                 })
@@ -486,7 +486,7 @@ const init = async (mod: Spotfire.Mod) => {
                             name == rotation.name && rotation.set(value);
                             name == randomPlacement.name && randomPlacement.set(value);
                             name == normalizeFont.name && normalizeFont.set(value);
-                            name == useStyleFont.name && useStyleFont.set(value);
+                            name == useImpactFont.name && useImpactFont.set(value);
                         }
                     },
                     settingsPopout

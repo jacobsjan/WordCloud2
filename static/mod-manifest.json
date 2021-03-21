@@ -1,7 +1,7 @@
 {
     "apiVersion": "1.0",
-    "version": "1.0.2",
-    "name": "Word cloud",
+    "version": "1.0.3",
+    "name": "Word Cloud",
     "id": "spotfire-wordcloud2-mod",
     "icon": "icon.svg",
     "properties": [ 
@@ -16,7 +16,7 @@
             "type": "boolean"
         },
         {
-            "name": "useStyleFont",
+            "name": "useImpactFont",
             "defaultValue": "false",
             "type": "boolean"
         },
