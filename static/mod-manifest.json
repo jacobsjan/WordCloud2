@@ -1,6 +1,6 @@
 {
     "apiVersion": "1.0",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "name": "Word Cloud",
     "id": "spotfire-wordcloud2-mod",
     "icon": "icon.svg",

@@ -213,7 +213,7 @@ const init = async (mod: Spotfire.Mod) => {
         // Add id's to rows, TIBCO doesn't want me to use theirs
         let hasher = hashcode.hashCode();
         //@ts-ignore
-        words.forEach(w => { if(!w.row.id) w.row.id = hasher.value([w.text, w.size, colorAxisMeta.isCategorical ? categoricalValue(w.row.categorical("Color")) : w.row.continuous("Color").value()]); } );
+        words.forEach(w => { if(!w.row.id) w.row.id = hasher.value([w.text, w.size, colorAxisMeta.parts.length == 0 ? null : colorAxisMeta.isCategorical ? categoricalValue(w.row.categorical("Color")) : w.row.continuous("Color").value()]); } );
 
         // Was anything besides coloring changed?
         let nonColorData = {
