@@ -199,7 +199,7 @@ const init = async (mod: Spotfire.Mod) => {
 
         // Extract data from dataview
         const fontSizeSet = fontSizeAxisMeta.parts.length > 0,
-            categoricalValue = (dvcv: DataViewCategoricalValue) => dvcv.value().map(v => v.key).reduce((res, val) => res + "," + val),
+            categoricalValue = (dvcv: DataViewCategoricalValue) => dvcv.formattedValue(","),
             tooltipGen = await createTooltipGenerator([wordsAxisMeta, fontSizeAxisMeta, colorAxisMeta]);
 
         words = rows.map((r: DataViewRow) => ({
