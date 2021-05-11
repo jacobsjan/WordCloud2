@@ -269,7 +269,7 @@ const init = async (mod: Spotfire.Mod) => {
             // Due to the irregular shapes of text and the imprecision of the default
             // browser hittesting for text (try e.g. a ☺ smiley) we use a custom hitmap
             // for handling mouse operations
-            let hitmap: number[],
+            let hitmap: string[],
                 winWidth32 = (windowSize.width + 0x1f) >> 5 << 5,
                 hitId = (x: number, y: number) => hitmap?.[Math.floor(x) + Math.floor(y) * winWidth32], // Rounding for IE11
                 hitWord = (x: number, y: number) => { 
@@ -320,7 +320,7 @@ const init = async (mod: Spotfire.Mod) => {
                     result.width = Math.floor(result.width);
                     result.height = Math.floor(result.height);
 
-                    let ids: number[] = [];
+                    let ids: string[] = [];
                     for (let y = result.y; y < result.y + result.height; ++y)  {
                         for (let x = result.x; x < result.x + result.width; ++x)  {
                             let id = hitId(x, y);
