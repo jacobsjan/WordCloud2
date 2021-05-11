@@ -273,13 +273,12 @@ const init = async (mod: Spotfire.Mod) => {
             // Due to the irregular shapes of text and the imprecision of the default
             // browser hittesting for text (try e.g. a ☺ smiley) we use a custom hitmap
             // for handling mouse operations
-            let hitmap: string[],
+            let hitmap:  PlacedWordType[],
                 winWidth32 = (windowSize.width + 0x1f) >> 5 << 5,
-                hitId = (x: number, y: number) => hitmap?.[Math.floor(x) + Math.floor(y) * winWidth32], // Rounding for IE11
+                hitPlacedWord = (x: number, y: number) => hitmap?.[Math.floor(x) + Math.floor(y) * winWidth32], // Rounding for IE11
                 hitWord = (x: number, y: number) => { 
-                    let id = hitId(x, y); 
-                    // @ts-ignore
-                    return id !== undefined ? words.find(w => w.id == id) as PlacedWordType : undefined;
+                    let placedWord = hitPlacedWord(x, y); 
+                    return placedWord !== undefined ? words.find(w => w.id == placedWord.id) as PlacedWordType : undefined;
                 };
 
             // Handle mouse operations
@@ -327,8 +326,8 @@ const init = async (mod: Spotfire.Mod) => {
                     let ids: string[] = [];
                     for (let y = result.y; y < result.y + result.height; ++y)  {
                         for (let x = result.x; x < result.x + result.width; ++x)  {
-                            let id = hitId(x, y);
-                            if (id !== undefined && !ids.includes(id)) ids.push(id);
+                            let placedWord = hitPlacedWord(x, y);
+                            if (placedWord !== undefined && !ids.includes(placedWord.id)) ids.push(placedWord.id);
                         }
                     }   
                     // @ts-ignore
@@ -369,8 +368,7 @@ const init = async (mod: Spotfire.Mod) => {
 
             // Render calculated cloud of words
             function end(tagHitmap: PlacedWordType[], tags: PlacedWordType[]) { 
-                // @ts-ignore
-                hitmap = tagHitmap.map(t => t.id);
+                hitmap = tagHitmap;
 
                 // Show words
                 svg.append("g")
