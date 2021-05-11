@@ -45,7 +45,8 @@ const init = async (mod: Spotfire.Mod) => {
         size: number,
         color: string,
         tooltip: string,
-        row: DataViewRow
+        row: DataViewRow,
+        id: string;
     }
 
     interface PlacedWordType extends WordType {
@@ -229,6 +230,7 @@ const init = async (mod: Spotfire.Mod) => {
             size: fontSizeSet ? r.continuous("Font size").value() as number: 20,
             color: r.color().hexCode,
             tooltip: tooltipGen(r),
+            id: r.elementId(),
             row: r
         }));
 
@@ -248,14 +250,16 @@ const init = async (mod: Spotfire.Mod) => {
             rotation,
             normalizeFont,
             useImpactFont,
-            randomPlacement
+            randomPlacement,
+            colorAxisMeta,
+            wordsAxisMeta
             );
-        let hash = hasher.value(nonColorData);
+        let hash = hasher.value(nonColorData);        
         if (!somethingChanged && prevHash == hash) {
             // Only the colors changed, don't do a full re-render, just update the colors
             svg.selectAll<any, WordType>("text:not(.hover)")
                 // @ts-ignore
-                .data(words, w => w.row.elementId())
+                .data(words, w => w.id)
                 .style("fill", (w) => w.color);
 
             onComplete();
@@ -275,7 +279,7 @@ const init = async (mod: Spotfire.Mod) => {
                 hitWord = (x: number, y: number) => { 
                     let id = hitId(x, y); 
                     // @ts-ignore
-                    return id !== undefined ? words.find(w => w.row.elementId() == id) as PlacedWordType : undefined;
+                    return id !== undefined ? words.find(w => w.id == id) as PlacedWordType : undefined;
                 };
 
             // Handle mouse operations
@@ -291,7 +295,7 @@ const init = async (mod: Spotfire.Mod) => {
                     let w = hitWord(d3.event.pageX, d3.event.pageY);
                     //let elem = document.elementFromPoint(d3.event.pageX, d3.event.pageY);
                     if (w) {
-                        let elem = svg.selectAll("g").selectAll<any, WordType>("text").filter(t => t.row.elementId() === w.row.elementId());
+                        let elem = svg.selectAll("g").selectAll<any, WordType>("text").filter(t => t.id === w.id);
                         // Add hover effect to word
                         if (!hoverMarking || hoverMarking.original !== elem.node()) {
                             clearHoverMarking(hoverMarking);
@@ -328,7 +332,7 @@ const init = async (mod: Spotfire.Mod) => {
                         }
                     }   
                     // @ts-ignore
-                    let markedWords = words.filter(w => ids.includes(w.row.elementId()));
+                    let markedWords = words.filter(w => ids.includes(w.id));
                     markedWords.forEach(w => w.row.mark(result.ctrlKey ? "Toggle" : "Replace"));
                 }
             });
@@ -366,7 +370,7 @@ const init = async (mod: Spotfire.Mod) => {
             // Render calculated cloud of words
             function end(tagHitmap: PlacedWordType[], tags: PlacedWordType[]) { 
                 // @ts-ignore
-                hitmap = tagHitmap.map(t => t.row.elementId());
+                hitmap = tagHitmap.map(t => t.id);
 
                 // Show words
                 svg.append("g")
