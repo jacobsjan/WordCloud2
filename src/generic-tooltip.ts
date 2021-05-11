@@ -1,5 +1,5 @@
 //import * as Module from "../node_modules/webpack/lib/Module";
-import { DataViewCategoricalValue, DataViewContinuousValue } from "../spotfire/spotfire-api";
+import { DataViewCategoricalValue, DataViewContinuousValue } from "../spotfire/spotfire-api-1-1";
 
 type TooltipGenerator = (row: Spotfire.DataViewRow) => string;
 

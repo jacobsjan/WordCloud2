@@ -10,7 +10,7 @@ import { cloud } from "./d3-cloud.js";
 import { measureText } from "./text-measure";
 import { createTooltipGenerator } from "./generic-tooltip";
 import { addHandlersSelection, removeHandlersSelection } from "./rect-selection";
-import { DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api";
+import { DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api-1-1";
 import { BaseType, range, schemeGnBu } from "d3";
 
 const Spotfire = window.Spotfire;
