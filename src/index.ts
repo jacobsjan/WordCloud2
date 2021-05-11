@@ -234,7 +234,6 @@ const init = async (mod: Spotfire.Mod) => {
             row: r
         }));
 
-        // Add id's to rows, TIBCO doesn't want me to use theirs
         let hasher = hashcode.hashCode();
 
         // Was anything besides coloring changed?
