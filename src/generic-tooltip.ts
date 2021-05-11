@@ -1,5 +1,5 @@
 //import * as Module from "../node_modules/webpack/lib/Module";
-import { DataViewCategoricalValue, DataViewContinuousValue } from "../spotfire/spotfire-api";
+import { DataViewCategoricalValue, DataViewContinuousValue } from "../spotfire/spotfire-api-1-1";
 
 type TooltipGenerator = (row: Spotfire.DataViewRow) => string;
 
@@ -16,8 +16,7 @@ export async function createTooltipGenerator(axes: Spotfire.Axis[]): Promise<Too
     return (row: Spotfire.DataViewRow) => 
         axes.flatMap(axis => axis.parts.map((part, index) =>             
             part.displayName + ": " + function() {
-                // @ts-ignore
-                if (axis.isCategorical || axis.mode == "categorical") {
+                if (axis.isCategorical) {
                     return catValue(row.categorical(axis.name), index);
                 } else {
                     return conValue(row.continuous(axis.name));

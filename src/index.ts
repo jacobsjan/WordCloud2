@@ -10,8 +10,9 @@ import { cloud } from "./d3-cloud.js";
 import { measureText } from "./text-measure";
 import { createTooltipGenerator } from "./generic-tooltip";
 import { addHandlersSelection, removeHandlersSelection } from "./rect-selection";
-import { DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api";
+import { Axis, DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api-1-1";
 import { BaseType, range, schemeGnBu } from "d3";
+import { readerWithChangeChecker } from "./readerWithChangeChecker";
 
 const Spotfire = window.Spotfire;
 
@@ -44,7 +45,8 @@ const init = async (mod: Spotfire.Mod) => {
         size: number,
         color: string,
         tooltip: string,
-        row: DataViewRow
+        row: DataViewRow,
+        id: string;
     }
 
     interface PlacedWordType extends WordType {
@@ -83,14 +85,17 @@ const init = async (mod: Spotfire.Mod) => {
      * Create reader function which is actually a one time listener for the provided values.
      * @type {Spotfire.Reader}
      */
-    const reader = mod.createReader(
+    const reader = readerWithChangeChecker(mod.createReader(
         mod.visualization.data(),
         mod.windowSize(),
         mod.property("rotation"),
         mod.property("normalizeFont"),
         mod.property("useImpactFont"),
         mod.property("randomPlacement"),
-    );
+        mod.visualization.axis("Words"),
+        mod.visualization.axis("Font size"),
+        mod.visualization.axis("Color")
+    ));
 
     /**
      * Creates a function that is part of the main read-render loop.
@@ -103,7 +108,16 @@ const init = async (mod: Spotfire.Mod) => {
      * @param {Spotfire.ModProperty<boolean>} useImpactFont - Use Impact font or style default
      * @param {Spotfire.ModProperty<boolean>} randomPlacement - Distribute words randomly
      */
-    const onChange = async (dataView: Spotfire.DataView, windowSize: Spotfire.Size, rotation: Spotfire.ModProperty<string>, normalizeFont: Spotfire.ModProperty<boolean>, useImpactFont: Spotfire.ModProperty<boolean>, randomPlacement: Spotfire.ModProperty<boolean>) => {
+    const onChange = async (
+        dataView: Spotfire.DataView,
+        windowSize: Spotfire.Size,
+        rotation: Spotfire.ModProperty<string>,
+        normalizeFont: Spotfire.ModProperty<boolean>,
+        useImpactFont: Spotfire.ModProperty<boolean>,
+        randomPlacement: Spotfire.ModProperty<boolean>,
+        wordsAxisMeta: Spotfire.Axis,
+        fontSizeAxisMeta: Spotfire.Axis,
+        colorAxisMeta: Spotfire.Axis) => {
         // Show progress indicator if drawing takes a while
         let drawingFinished = false;
         setTimeout(function() {
@@ -120,6 +134,9 @@ const init = async (mod: Spotfire.Mod) => {
                 normalizeFont,
                 useImpactFont,
                 randomPlacement,
+                wordsAxisMeta,
+                fontSizeAxisMeta,
+                colorAxisMeta,
                 () => {            
                     // Hide progress indicator
                     drawingFinished = true;
@@ -160,7 +177,17 @@ const init = async (mod: Spotfire.Mod) => {
      * @property {Spotfire.ModProperty<boolean>} randomPlacement - Distribute words randomly
      * @property {any} onComplete - windowSize
      */
-    async function render(dataView: DataView, windowSize: Size, rotation: ModProperty<string>, normalizeFont: ModProperty<boolean>, useImpactFont: ModProperty<boolean>, randomPlacement: ModProperty<boolean>, onComplete: CallableFunction) {
+    async function render(
+        dataView: DataView,
+        windowSize: Size,
+        rotation: ModProperty<string>,
+        normalizeFont: ModProperty<boolean>,
+        useImpactFont: ModProperty<boolean>,
+        randomPlacement: ModProperty<boolean>,
+        wordsAxisMeta: Axis,
+        fontSizeAxisMeta: Axis,
+        colorAxisMeta: Axis,
+        onComplete: CallableFunction) {
         /**
          * The DataView can contain errors which will cause rowCount method to throw.
          */
@@ -185,10 +212,6 @@ const init = async (mod: Spotfire.Mod) => {
 
         lastDataview = dataView;
 
-        const wordsAxisMeta = await mod.visualization.axis("Words");
-        const fontSizeAxisMeta = await mod.visualization.axis("Font size");
-        const colorAxisMeta = await mod.visualization.axis("Color");
-
         // Was a Words axis set?
         if (wordsAxisMeta.parts.length == 0) {
             // If not, remove all previously rendered bits and return
@@ -199,7 +222,7 @@ const init = async (mod: Spotfire.Mod) => {
 
         // Extract data from dataview
         const fontSizeSet = fontSizeAxisMeta.parts.length > 0,
-            categoricalValue = (dvcv: DataViewCategoricalValue) => dvcv.value().map(v => v.key).reduce((res, val) => res + "," + val),
+            categoricalValue = (dvcv: DataViewCategoricalValue) => dvcv.formattedValue(","),
             tooltipGen = await createTooltipGenerator([wordsAxisMeta, fontSizeAxisMeta, colorAxisMeta]);
 
         words = rows.map((r: DataViewRow) => ({
@@ -207,35 +230,35 @@ const init = async (mod: Spotfire.Mod) => {
             size: fontSizeSet ? r.continuous("Font size").value() as number: 20,
             color: r.color().hexCode,
             tooltip: tooltipGen(r),
+            id: r.elementId(),
             row: r
         }));
 
-        // Add id's to rows, TIBCO doesn't want me to use theirs
         let hasher = hashcode.hashCode();
-        //@ts-ignore
-        words.forEach(w => { if(!w.row.id) w.row.id = hasher.value([w.text, w.size, colorAxisMeta.parts.length == 0 ? null : colorAxisMeta.isCategorical ? categoricalValue(w.row.categorical("Color")) : w.row.continuous("Color").value()]); } );
 
         // Was anything besides coloring changed?
         let nonColorData = {
             words: words.map(r => ({ 
-                    text: r.text, 
-                    size: r.size
-            })),
-            windowSize,
-            rotation: rotation.value(),
-            normalizeFont: normalizeFont.value(),
-            useImpactFont: useImpactFont.value(),
-            randomPlacement: randomPlacement.value(),
-            wordsAxisMeta,
-            fontSizeAxisMeta,
-            colorAxisMeta
+                text: r.text,
+                size: r.size
+            }))
         };
-        let hash = hasher.value(nonColorData);
-        if (hash == prevHash) {
+
+        let somethingChanged = reader.hasValueChanged(
+            windowSize,
+            rotation,
+            normalizeFont,
+            useImpactFont,
+            randomPlacement,
+            colorAxisMeta,
+            wordsAxisMeta
+            );
+        let hash = hasher.value(nonColorData);        
+        if (!somethingChanged && prevHash == hash) {
             // Only the colors changed, don't do a full re-render, just update the colors
-            svg.selectAll("text:not(.hover)")
+            svg.selectAll<any, WordType>("text:not(.hover)")
                 // @ts-ignore
-                .data(words, w => w.row.id)
+                .data(words, w => w.id)
                 .style("fill", (w) => w.color);
 
             onComplete();
@@ -249,13 +272,12 @@ const init = async (mod: Spotfire.Mod) => {
             // Due to the irregular shapes of text and the imprecision of the default
             // browser hittesting for text (try e.g. a ☺ smiley) we use a custom hitmap
             // for handling mouse operations
-            let hitmap: number[],
+            let hitmap:  PlacedWordType[],
                 winWidth32 = (windowSize.width + 0x1f) >> 5 << 5,
-                hitId = (x: number, y: number) => hitmap?.[Math.floor(x) + Math.floor(y) * winWidth32], // Rounding for IE11
+                hitPlacedWord = (x: number, y: number) => hitmap?.[Math.floor(x) + Math.floor(y) * winWidth32], // Rounding for IE11
                 hitWord = (x: number, y: number) => { 
-                    let id = hitId(x, y); 
-                    // @ts-ignore
-                    return id !== undefined ? words.find(w => w.row.id == id) as PlacedWordType : undefined;
+                    let placedWord = hitPlacedWord(x, y); 
+                    return placedWord !== undefined ? words.find(w => w.id == placedWord.id) as PlacedWordType : undefined;
                 };
 
             // Handle mouse operations
@@ -271,8 +293,7 @@ const init = async (mod: Spotfire.Mod) => {
                     let w = hitWord(d3.event.pageX, d3.event.pageY);
                     //let elem = document.elementFromPoint(d3.event.pageX, d3.event.pageY);
                     if (w) {
-                        //@ts-ignore
-                        let elem = svg.selectAll("g").selectAll("text").filter(t => t.row.id === w.row.id);
+                        let elem = svg.selectAll("g").selectAll<any, WordType>("text").filter(t => t.id === w.id);
                         // Add hover effect to word
                         if (!hoverMarking || hoverMarking.original !== elem.node()) {
                             clearHoverMarking(hoverMarking);
@@ -301,15 +322,15 @@ const init = async (mod: Spotfire.Mod) => {
                     result.width = Math.floor(result.width);
                     result.height = Math.floor(result.height);
 
-                    let ids: number[] = [];
+                    let ids: string[] = [];
                     for (let y = result.y; y < result.y + result.height; ++y)  {
                         for (let x = result.x; x < result.x + result.width; ++x)  {
-                            let id = hitId(x, y);
-                            if (id !== undefined && !ids.includes(id)) ids.push(id);
+                            let placedWord = hitPlacedWord(x, y);
+                            if (placedWord !== undefined && !ids.includes(placedWord.id)) ids.push(placedWord.id);
                         }
                     }   
                     // @ts-ignore
-                    let markedWords = words.filter(w => ids.includes(w.row.id));
+                    let markedWords = words.filter(w => ids.includes(w.id));
                     markedWords.forEach(w => w.row.mark(result.ctrlKey ? "Toggle" : "Replace"));
                 }
             });
@@ -346,8 +367,7 @@ const init = async (mod: Spotfire.Mod) => {
 
             // Render calculated cloud of words
             function end(tagHitmap: PlacedWordType[], tags: PlacedWordType[]) { 
-                // @ts-ignore
-                hitmap = tagHitmap.map(t => t.row.id);
+                hitmap = tagHitmap;
 
                 // Show words
                 svg.append("g")
@@ -388,7 +408,7 @@ const init = async (mod: Spotfire.Mod) => {
             svg.on("mouseout", null);
         }
 
-        function showHoverMarking(hoverMarking: any, elem: d3.Selection<d3.BaseType, unknown, d3.BaseType, unknown>) {
+        function showHoverMarking(hoverMarking: any, elem: d3.Selection<d3.BaseType, WordType, d3.BaseType, unknown>) {
             hoverMarking = {
                 original: elem.node() as SVGTextElement,
                 clones: [
