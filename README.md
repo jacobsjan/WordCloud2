@@ -1,6 +1,6 @@
 # Wordcloud MOD for TIBCO Spotfire®
 
-Wordcloud let visualize textual information in a more visual and compelling manner than ever before. All the functionalities you expect are there: custom colors and font sizes, high performance, accurate and highly responsive markings, ... On top of that you can choose different word angles and layouts and specify font sizes yourself or let the Mod normalize these for you. 
+Wordcloud lets you visualize textual information in a more visual and compelling manner than ever before. All the functionality you expect is there: custom colors and font sizes, high performance, accurate and highly responsive markings, ... On top of that you can choose different word angles and layouts and specify font sizes yourself or let the Mod normalize those for you.
 
 ![Wordcloud MOD screenshot](screenshot.png)
 
