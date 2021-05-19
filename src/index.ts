@@ -118,6 +118,7 @@ const init = async (mod: Spotfire.Mod) => {
         wordsAxisMeta: Spotfire.Axis,
         fontSizeAxisMeta: Spotfire.Axis,
         colorAxisMeta: Spotfire.Axis) => {
+            
         // Show progress indicator if drawing takes a while
         let drawingFinished = false;
         setTimeout(function() {
@@ -195,8 +196,7 @@ const init = async (mod: Spotfire.Mod) => {
         if (errors.length > 0) {
             // Data view contains errors. Display these and clear the chart to avoid
             // getting a flickering effect with an old chart configuration later (TODO).
-            mod.controls.errorOverlay.show(errors, "dataView");
-            return;
+            throw errors;
         }
 
         mod.controls.errorOverlay.hide("dataView");
