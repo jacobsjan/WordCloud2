@@ -394,8 +394,8 @@ const init = async (mod: Spotfire.Mod) => {
                 // Were all words rendered?
                 if (words.length != tags.length) {
                     // No, show info icon
-                    let text = `Only ${tags.length} of ${words.length} words visible. `;
-                    text += normalizeFont.value() ? "Try turning off font size normalization and adjusting the font size manually." : "Try diminishing the font size.";
+                    let text = `Only ${tags.length} of ${words.length} words visible.`;
+                    if (context.isEditing) text += normalizeFont.value() ? " Try turning off font size normalization and adjusting the font size manually." : " Try diminishing the font size.";
                     infoIcon.attr("tooltipText", text);
                     infoIcon.style("display", "inline");
                 }
