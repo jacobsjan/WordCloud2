@@ -43,6 +43,7 @@ body,
     height: 14px;
     fill: #5D6EFA;
     cursor: pointer;
+    transition: opacity 0.25s cubic-bezier(1, 0.28, 0, 0.94);
 }
 
 text {
