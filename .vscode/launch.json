@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Attach to Spotfire Professional",
-            "type": "chrome",
+            "type": "pwa-chrome",
             "url": "http://localhost:*/?view=*",
             "request": "attach",
             "port": 8066,

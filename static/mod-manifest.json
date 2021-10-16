@@ -1,6 +1,6 @@
 {
-    "apiVersion": "1.2",
-    "version": "1.0.4",
+    "apiVersion": "1.3",
+    "version": "1.0.5",
     "name": "Word Cloud",
     "id": "spotfire-wordcloud2-mod",
     "icon": "icon.svg",
@@ -27,6 +27,9 @@
         }
      ],
     "dataViewDefinition": {
+        "tooltip" : {
+            "enabled": true
+        },
         "colorAxis": {
             "mode": "dual",
             "dropTarget": {
