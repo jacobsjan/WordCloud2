@@ -8,9 +8,8 @@ let seedrandom = require("seedrandom");
 
 import { cloud } from "./d3-cloud.js";
 import { measureText } from "./text-measure";
-import { createTooltipGenerator } from "./generic-tooltip";
 import { addHandlersSelection, removeHandlersSelection } from "./rect-selection";
-import { Axis, DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api-1-2";
+import { Axis, DataView, DataViewCategoricalValue, DataViewRow, ModProperty, Size } from "../spotfire/spotfire-api-1-3";
 import { BaseType, range, schemeGnBu } from "d3";
 import { readerWithChangeChecker } from "./readerWithChangeChecker";
 
@@ -44,7 +43,6 @@ const init = async (mod: Spotfire.Mod) => {
         text: string, 
         size: number,
         color: string,
-        tooltip: string,
         row: DataViewRow,
         id: string;
     }
@@ -231,14 +229,12 @@ const init = async (mod: Spotfire.Mod) => {
 
         // Extract data from dataview
         const fontSizeSet = fontSizeAxisMeta.parts.length > 0,
-            categoricalValue = (dvcv: DataViewCategoricalValue) => dvcv.formattedValue(","),
-            tooltipGen = await createTooltipGenerator([wordsAxisMeta, fontSizeAxisMeta, colorAxisMeta]);
+            categoricalValue = (dvcv: DataViewCategoricalValue) => dvcv.formattedValue(",");
 
         words = rows.map((r: DataViewRow) => ({
             text: categoricalValue(r.categorical("Words")), 
             size: fontSizeSet ? r.continuous("Font size").value() as number: 20,
             color: r.color().hexCode,
-            tooltip: tooltipGen(r),
             id: r.elementId(),
             row: r
         }));
@@ -246,12 +242,10 @@ const init = async (mod: Spotfire.Mod) => {
         let hasher = hashcode.hashCode();
 
         // Was anything besides coloring changed?
-        let nonColorData = {
-            words: words.map(r => ({ 
+        let nonColorData = words.map(r => ({ 
                 text: r.text,
                 size: r.size
-            }))
-        };
+            }));
 
         let somethingChanged = reader.hasValueChanged(
             windowSize,
@@ -308,7 +302,7 @@ const init = async (mod: Spotfire.Mod) => {
                             clearHoverMarking(hoverMarking);
                             hoverMarking = showHoverMarking(hoverMarking, elem);
                         }
-                        tooltip.show(w.tooltip);
+                        tooltip.show(w.row);
                     } else {
                         // Remove hover effect from word
                         hoverMarking = clearHoverMarking(hoverMarking);
@@ -574,6 +568,7 @@ const init = async (mod: Spotfire.Mod) => {
                     maxWidthIndex = initialWidths.reduce((r, v, i) => (v > initialWidths[r]) ? i : r, 0);
                 let highestSize = initialFontSize * winHeight / roundHeight(initialHeights[maxHeightIndex]),
                     widestSize = initialFontSize * winWidth / roundWidth(initialWidths[maxWidthIndex]);
+
                 // Iterate also here to smooth out rounding imperfections
                 while (roundHeight(highestSize * initialHeights[maxHeightIndex] / initialFontSize) >= winHeight)
                     --highestSize;
